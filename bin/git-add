@@ -1,1 +1,39 @@
 #!/usr/bin/env node
+
+'use strict';
+
+var inquirer = require('inquirer');
+
+require('shelljs/global');
+
+if (!which('git')) {
+  echo('Sorry, this script requires Git');
+  exit(1);
+}
+
+var unstagedCall = exec('git ls-files -m', { silent: true });
+var unstaged = [];
+
+if (unstagedCall.code === 0) {
+  unstaged = unstagedCall.output.split('\n');
+  unstaged.pop();
+}
+
+if (!unstaged.length) {
+  echo('No files to add');
+  exit(0);
+}
+
+inquirer.prompt({
+  type: 'checkbox',
+  message: 'Select files to stage',
+  name: 'unstaged',
+  choices: unstaged
+}, function (answers) {
+  answers.unstaged.forEach(function (file) {
+    exec('git add ' + file);
+  });
+});
+
+
+
